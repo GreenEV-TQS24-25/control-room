@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      # Default user is postgres
+      POSTGRES_DB: db
+      POSTGRES_PASSWORD: secret
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    build: ./backend
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 100
+      start_period: 2s
+
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      # - ./backend:/backend
+      - maven_data:/root/.m2
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /backend
+
+networks:
+  backend:
+
+volumes:
+  maven_data:
+  pg_data:

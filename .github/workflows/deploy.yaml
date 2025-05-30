@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    name: Deploy to DETI machine
+    # env: IN FUTURE set this to remove logs
+    #   PRODUCTION: true
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Packages
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker compose -f compose.prod.yaml pull
+          docker compose -f compose.prod.yaml up -d --remove-orphans
+          docker container prune -f
+          docker image prune -af
+          docker builder prune -af

@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      # Default user is postgres
+      POSTGRES_DB: db
+      POSTGRES_PASSWORD: secret
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: ghcr.io/greenev-tqs24-25/backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+
+    healthcheck:
+      test: "curl --fail --silent localhost:8001/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 100
+      start_period: 2s
+
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - maven_data:/root/.m2
+
+  frontend:
+    build:
+      context: ./frontend/green-ev
+      dockerfile: Dockerfile.prod
+
+    image: ghcr.io/greenev-tqs24-25/frontend:latest
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - node_modules:/green-ev/node_modules
+    networks:
+      - frontend
+
+  proxy:
+    image: nginx:latest
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - backend
+      - frontend
+    restart: unless-stopped
+    volumes:
+      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
+
+networks:
+  backend:
+  frontend:
+
+volumes:
+  maven_data:
+  pg_data:
+  node_modules:

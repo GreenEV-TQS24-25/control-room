@@ -47,8 +47,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    volumes:
-      - node_modules:/green-ev/node_modules
     networks:
       - frontend
 
@@ -65,7 +63,7 @@ services:
       - frontend
     restart: unless-stopped
     volumes:
-      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
+      - ./proxy/prod.conf:/etc/nginx/conf.d/default.conf
 
   prometheus:
     image: prom/prometheus:latest
@@ -123,5 +121,4 @@ networks:
 volumes:
   maven_data:
   pg_data:
-  node_modules:
   grafana_data:

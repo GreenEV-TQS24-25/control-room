@@ -43,6 +43,8 @@ services:
     build:
       context: ./frontend/green-ev
       dockerfile: Dockerfile.prod
+    env_file:
+      - .env.prod
 
     image: ghcr.io/greenev-tqs24-25/frontend:latest
     depends_on:
@@ -86,7 +88,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SERVER_ROOT_URL=http://localhost/grafana/
+      - GF_SERVER_ROOT_URL=http://deti-tqs-20.ua.pt/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH="true"
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_ANONYMOUS_ENABLED=true

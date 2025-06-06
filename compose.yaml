@@ -29,7 +29,8 @@ services:
       timeout: 2s
       retries: 100
       start_period: 2s
-
+    env_file:
+      - .env
     ports:
       - "8001:8001"
     restart: unless-stopped

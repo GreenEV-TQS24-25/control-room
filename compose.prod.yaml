@@ -24,7 +24,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
-
+    env_file:
+      - .env.prod
     healthcheck:
       test: "curl --fail --silent localhost:8001/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -85,9 +86,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_BASIC_ENABLED=false
       - GF_SERVER_ROOT_URL=http://localhost/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH="true"
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
@@ -113,6 +111,15 @@ services:
     command: run -o experimental-prometheus-rw /k6/spike-test.js
     networks:
       - backend
+  stripe:
+    image: stripe/stripe-cli:latest
+    depends_on:
+      backend:
+        condition: service_healthy
+    env_file:
+      - .env.prod
+    command: listen --forward-to http://localhost/api/v1/public/payment/webhook
+    network_mode: "host"
 
 networks:
   backend:

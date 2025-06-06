@@ -120,7 +120,7 @@ services:
         condition: service_healthy
     env_file:
       - .env.prod
-    command: listen --forward-to http://localhost/api/v1/public/payment/webhook
+    command: listen --forward-to http://deti-tqs-20.ua.pt/api/v1/public/payment/webhook
     network_mode: "host"
 
 networks:

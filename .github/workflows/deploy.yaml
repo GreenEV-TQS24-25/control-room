@@ -21,9 +21,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          clean: false
 
       - name: Login to GitHub Packages
         uses: docker/login-action@v3
+
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
